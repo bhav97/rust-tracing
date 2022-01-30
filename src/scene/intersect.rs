@@ -1,6 +1,8 @@
 use crate::geometry::vec3::Vector as Point;
 use crate::geometry::vec3::Vector;
 use crate::scene::ray::Ray;
+use crate::scene::material::Material;
+use crate::color::rgb::RgbColor;
 
 pub struct Intersection {
     // Intersections happen when a ray crosses the bounds of an object that implements this trait
@@ -19,17 +21,14 @@ pub struct Intersection {
     // where O is the origin of the ray, D is the direction
     // Think of this as the distance travelled by the ray from its origin
     pub t: f64,
-
-    front_face: bool,
 }
 
 impl Intersection {
-    pub fn new(point: Point, normal: Vector, t: f64, front_face: bool) -> Self {
+    pub fn new(point: Point, normal: Vector, t: f64) -> Self {
         Intersection {
             point,
             normal,
             t,
-            front_face
         }
     }
 }
@@ -38,4 +37,5 @@ pub trait Intersect {
     // type HitList = std::vec::Vec::<crate::scene::intersect::Intersections as Trait>::new();
 
     fn intersects(self: &Self, ray: &Ray, range: (f64, f64)) -> Option<Intersection>;
+    fn material(&self) -> &dyn Material<albedo=RgbColor>;
 }

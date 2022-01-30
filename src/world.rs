@@ -6,6 +6,8 @@ use crate::scene::intersect::Intersect;
 use crate::scene::intersect::Intersection;
 use crate::scene::ray::Ray;
 use std::vec::Vec;
+use crate::scene::material::Material;
+use crate::scene::material::matte::Matte;
 
 /// A virtual world is represented here
 pub struct World {
@@ -58,10 +60,20 @@ impl World {
             return RgbColor::default();
         }
 
-        if let Some(ray_hit) = self.hit(&ray, (0.0001f64, f64::INFINITY)) {
+        if let Some((ray_hit, material)) = self.hit(&ray, (0.0001f64, f64::INFINITY)) {
             let target = ray_hit.point + ray_hit.normal;
-            return self.raytrace(&Ray::new(ray_hit.point, target - ray_hit.point), depth - 1) * 0.5f64;
-            // Color the first intersection
+            
+            // 3. Recursive ray bounces integrated with material scattering
+            if let Some(scattered_ray) = material.scatter(ray, &ray_hit) {
+                return self.raytrace(&scattered_ray, depth - 1) * *material.albedo()
+            } else {
+                return RgbColor::default();
+            }
+
+            // 2. Recursive ray bounces
+            // return self.raytrace(&Ray::new(ray_hit.point, target - ray_hit.point), depth - 1) * 0.5f64;
+
+            // 1. Color the first intersection
             // return ray_hit.normal * 0.5f64;
         } else {
             // Nothing is hit, generate gradient background
@@ -79,10 +91,11 @@ impl World {
     }
 
     // private method
-    fn hit(&self, ray: &Ray, range: (f64, f64)) -> Option<Intersection> {
+    fn hit(&self, ray: &Ray, range: (f64, f64)) -> Option<(Intersection, &dyn Material<albedo = RgbColor>)> {
         let mut closest_intersect =
-            Intersection::new(Point::default(), Vector::default(), range.1, false);
+            Intersection::new(Point::default(), Vector::default(), range.1);
         let mut did_it_intersect = false;
+        let mut material_hit: Option<&dyn Material<albedo = RgbColor>> = None;
 
         // For every object in the world i.e. our content vector
         for object in &self.contents {
@@ -92,12 +105,12 @@ impl World {
                 // update closest intersection to find any further
                 // intersections between range.0 and the current intersection
                 closest_intersect = intr;
-                did_it_intersect = true;
+                material_hit = Some(object.material());
             }
         }
 
-        if did_it_intersect {
-            return Some(closest_intersect);
+        if let Some(material) = material_hit {
+            return Some((closest_intersect, material));
         }
 
         None

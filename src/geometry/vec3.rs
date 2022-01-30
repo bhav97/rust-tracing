@@ -78,6 +78,19 @@ impl Sub for Vector {
     }
 }
 
+// Weird Vector multiplication
+impl Mul<Vector> for Vector {
+    type Output = Self;
+
+    fn mul(self, v: Vector) -> Self::Output {
+        Self {
+            x: v.x * self.x,
+            y: v.y * self.y,
+            z: v.z * self.z
+        }
+    }
+}
+
 // Vector scalar multiplication
 impl Mul<f64> for Vector {
     type Output = Self;
