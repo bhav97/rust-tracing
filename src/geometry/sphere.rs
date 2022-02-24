@@ -1,21 +1,25 @@
+use crate::color::rgb::RgbColor;
 use crate::geometry::vec3::Vector as Point;
 use crate::geometry::vec3::Vector;
 use crate::scene::intersect::Intersect;
 use crate::scene::intersect::Intersection;
 use crate::scene::material::Material;
 use crate::scene::ray::Ray;
-use crate::color::rgb::RgbColor;
 use std::fmt::{Debug, Formatter, Result};
 
 pub struct Sphere {
     center: Point,
     radius: f64,
-    material: Box<dyn Material<albedo = RgbColor>>,
+    material: Box<dyn Material<Albedo = RgbColor>>,
 }
 
 impl Sphere {
-    pub fn new(center: Point, radius: f64, material: Box<dyn Material<albedo = RgbColor>>) -> Self {
-        Sphere { center, radius, material }
+    pub fn new(center: Point, radius: f64, material: Box<dyn Material<Albedo = RgbColor>>) -> Self {
+        Sphere {
+            center,
+            radius,
+            material,
+        }
     }
 
     pub fn default() -> Self {
@@ -28,14 +32,13 @@ impl Sphere {
                 z: 0f64,
             },
             radius: 1f64,
-            material: Box::new(matte::Matte { albedo: RgbColor::new(0.8f64, 0.8f64, 0.8f64) })
+            material: Box::new(matte::Matte::new(RgbColor::new(0.8f64, 0.8f64, 0.8f64))),
         }
     }
 }
 
 impl Intersect for Sphere {
-
-    fn material(&self) -> &dyn Material<albedo=RgbColor> {
+    fn material(&self) -> &dyn Material<Albedo = RgbColor> {
         // time to do some sketchy shit doo-dah doo-dah
         &*self.material
     }
@@ -71,19 +74,16 @@ impl Intersect for Sphere {
 
         // Check if the ray and normal are in the same direction
         let mut normal = (r.at(root) - self.center) / self.radius;
-        let front_face: bool = Vector::dot(normal, r.direction) < 0f64; 
+        let front_face: bool = Vector::dot(normal, r.direction) < 0f64;
         if !front_face {
             normal = normal * -1f64;
         }
 
-        Some(Intersection::new(
-            r.at(root),
-            normal,
-            root,
-        ))
+        Some(Intersection::new(r.at(root), normal, root))
     }
 }
 
+// Helps with debugging the different objects in our world
 impl Debug for Sphere {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "Sphere of radius {} at {:?}", self.radius, self.center)
@@ -93,9 +93,13 @@ impl Debug for Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scene::material::matte;
 
     #[test]
     fn test_default_sphere() {
+        let material = Box::new(matte::Matte {
+            albedo: RgbColor::default(),
+        });
         assert_eq!(
             Sphere::default(),
             Sphere {
@@ -104,7 +108,8 @@ mod tests {
                     y: 0f64,
                     z: 0f64
                 },
-                radius: 1f64
+                radius: 1f64,
+                material
             }
         );
     }
