@@ -30,7 +30,7 @@ impl Vector {
     }
 
     pub fn dot(v1: Vector, v2: Vector) -> f64 {
-            v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
+        v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
     }
 
     pub fn len(self) -> f64 {
@@ -86,7 +86,7 @@ impl Mul<Vector> for Vector {
         Self {
             x: v.x * self.x,
             y: v.y * self.y,
-            z: v.z * self.z
+            z: v.z * self.z,
         }
     }
 }
@@ -124,157 +124,88 @@ mod tests {
 
     #[test]
     fn test_vec3_add() {
-        let v1 = Vector {
-            x: 1f64,
-            y: 0f64,
-            z: -1f64,
-        };
-        let v2 = Vector {
-            x: 1f64,
-            y: 2f64,
-            z: 3f64,
-        };
-        assert_eq!(
-            Vector {
-                x: 2f64,
-                y: 2f64,
-                z: 2f64
-            },
-            v1 + v2
-        );
-    }
-
-    #[test]
-    fn test_vec3_new() {
-        let v = Vector::new(1f64, 2f64, 3f64);
-        assert_eq!(
-            Vector {
-                x: 1f64,
-                y: 2f64,
-                z: 3f64
-            },
-            v
-        );
+        let v1 = Vector::new(1f64, 0f64, -1f64);
+        let v2 = Vector::new(1f64, 2f64, 3f64);
+        // i - k + i + 2j + 3k = 2i + 2j + 2k
+        assert_eq!(Vector::new(2f64, 2f64, 2f64), v1 + v2);
+        assert_eq!(Vector::new(2f64, 2f64, 2f64), v2 + v1);
+        // i + 2j + 3k - i + k = 2i + 2j + 2k
+        assert_eq!(Vector::new(0f64, 2f64, 4f64), v2 - v1);
+        // i - k - i - 2j - 3k = 2i + 2j + 2k
+        assert_eq!(Vector::new(0f64, -2f64, -4f64), v1 - v2);
     }
 
     #[test]
     fn test_vec_len() {
-        let v = Vector {
-            x: 4f64,
-            y: 0f64,
-            z: 3f64,
-        };
-        assert_eq!(v.len(), 5f64);
+        let v1 = Vector::new(4f64, 0f64, 3f64);
+        let v2 = Vector::new(6f64, 8f64, 0f64);
+        assert_eq!(v1.len(), 5f64);
+        assert_eq!(v2.len(), 10f64);
     }
 
     #[test]
     fn test_vec_len_sq() {
-        let v = Vector {
-            x: 4f64,
-            y: 0f64,
-            z: 3f64,
-        };
-        assert_eq!(v.len_sq(), 25f64);
+        let v1 = Vector::new(4f64, 0f64, 3f64);
+        let v2 = Vector::new(6f64, 8f64, 0f64);
+        assert_eq!(v1.len_sq(), 25f64);
+        assert_eq!(v2.len_sq(), 100f64);
+        assert_eq!((v1 + v2).len_sq(), 173f64)
     }
 
     #[test]
-    fn test_vec_cross_1() {
-        let v1 = Vector {
-            x: 1f64,
-            y: 1f64,
-            z: 1f64,
-        };
-        let v2 = Vector {
-            x: 1f64,
-            y: 0f64,
-            z: 1f64,
-        };
-        assert_eq!(
-            Vector {
-                x: 1f64,
-                y: 0f64,
-                z: -1f64
-            },
-            Vector::cross(v1, v2)
-        );
-    }
+    fn test_vec_cross() {
+        let v1 = Vector::new(1f64, 1f64, 1f64);
+        let v2 = Vector::new(1f64, 0f64, 1f64);
+        let v3 = Vector::new(1f64, 2f64, 1f64);
+        let v4 = Vector::new(-1f64, 1f64, -1f64);
 
-    #[test]
-    fn test_vec_cross_self() {
-        let v1 = Vector {
-            x: 1f64,
-            y: 1f64,
-            z: 1f64,
-        };
-        assert_eq!(
-            Vector {
-                x: 0f64,
-                y: 0f64,
-                z: 0f64
-            },
-            Vector::cross(v1, v1)
-        );
-    }
+        // (i + j + k) x (i + k) = i - k
+        assert_eq!(Vector::new(1f64, 0f64, -1f64), Vector::cross(v1, v2));
+        // (i + k) x (i + j + k)
+        assert_eq!(Vector::new(-1f64, 0f64, 1f64), Vector::cross(v2, v1));
 
-    #[test]
-    fn test_vec_cross_2() {
-        let v1 = Vector {
-            x: 1f64,
-            y: 2f64,
-            z: 1f64,
-        };
-        let v2 = Vector {
-            x: -1f64,
-            y: 1f64,
-            z: -1f64,
-        };
-        assert_eq!(
-            Vector {
-                x: -3f64,
-                y: 0f64,
-                z: 3f64
-            },
-            Vector::cross(v1, v2)
-        );
+        // (i + k) x (i + k) = 0
+        assert_eq!(Vector::new(0f64, 0f64, 0f64), Vector::cross(v2, v2));
+        // (i + 2j + k) x (j - i - k) = 3k - 3i
+        assert_eq!(Vector::new(-3f64, 0f64, 3f64), Vector::cross(v3, v4));
+        // (j - i - k) x (i + 2j + k) = 3i - 3k
+        assert_eq!(Vector::new(3f64, 0f64, -3f64), Vector::cross(v4, v3));
+
+        // (j - i - k) x (i + k) = i - k
+        assert_eq!(Vector::new(1f64, 0f64, -1f64), Vector::cross(v4, v2));
     }
 
     #[test]
     fn test_vec_dot() {
-        let v1 = Vector {
-            x: 1f64,
-            y: 2f64,
-            z: 1f64,
-        };
-        let v2 = Vector {
-            x: -1f64,
-            y: 1f64,
-            z: -1f64,
-        };
-        assert_eq!(
-            Vector {
-                x: -1f64,
-                y: 2f64,
-                z: -1f64
-            },
-            Vector::cross(v1, v2)
-        );
+        let v1 = Vector::new(1f64, 2f64, 1f64);
+        let v2 = Vector::new(-1f64, 1f64, -1f64);
+        assert_eq!(6f64, Vector::dot(v1, v1));
+        assert_eq!(0f64, Vector::dot(v2, v1));
+        assert_eq!(3f64, Vector::dot(v2, v2));
     }
 
     #[test]
     fn test_unit_of_vector() {
-        let v = Vector {
-            x: -1f64,
-            y: 1f64,
-            z: -1f64,
-        };
+        let mut v = Vector::new(1f64, 1f64, 1f64);
+
         assert_eq!(
-            Vector {
-                x: -1f64 / f64::sqrt(3f64),
-                y: 1f64 / f64::sqrt(3f64),
-                z: -1f64 / f64::sqrt(3f64)
-            },
+            Vector::new(
+                1f64 / f64::sqrt(3f64),
+                1f64 / f64::sqrt(3f64),
+                1f64 / f64::sqrt(3f64)
+            ),
             Vector::unit(v)
         );
 
+        // This might fail due to floating point inaccuracies on some numbers
+        v = v * 4f64;
+        assert_eq!(
+            Vector::new(
+                1f64 / f64::sqrt(3f64),
+                1f64 / f64::sqrt(3f64),
+                1f64 / f64::sqrt(3f64)
+            ),
+            Vector::unit(v)
+        );
     }
 }
