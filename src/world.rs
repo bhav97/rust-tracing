@@ -40,10 +40,16 @@ impl World {
         // TODO: render in multiple threads
         for y in (0..img_height).rev() {
             for x in 0..img_width {
-                let u = x as f64 / (img_width - 1) as f64;
-                let v = y as f64 / (img_height - 1) as f64;
-                let ray = camera.get_ray(u, v);
-                render.push(self.raytrace(&ray, World::MAX_DEPTH));
+                // Oversample
+                let mut pixel_color = RgbColor::default();
+                for _ in 0..World::SAMPLES_PER_PIXEL {
+                    let u = x as f64 / (img_width - 1) as f64;
+                    let v = y as f64 / (img_height - 1) as f64;
+                    let ray = camera.get_ray(u, v);
+                    pixel_color = pixel_color + self.raytrace(&ray, World::MAX_DEPTH);
+                }
+                pixel_color = pixel_color * ( 1f64 / World::SAMPLES_PER_PIXEL as f64);
+                render.push(pixel_color);
             }
         }
 
