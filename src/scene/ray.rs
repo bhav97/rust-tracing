@@ -10,7 +10,7 @@ impl Ray {
     pub fn new(origin: Point, direction: Vector) -> Ray {
         Ray {
             origin,
-            direction
+            direction: Vector::unit(direction)
         }
     }
 
@@ -21,7 +21,7 @@ impl Ray {
                 y: 0f64,
                 z: 0f64
             },
-            direction
+            direction: Vector::unit(direction)
         }
     }
 
