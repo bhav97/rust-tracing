@@ -37,5 +37,5 @@ pub trait Intersect {
     // type HitList = std::vec::Vec::<crate::scene::intersect::Intersections as Trait>::new();
 
     fn intersects(self: &Self, ray: &Ray, range: (f64, f64)) -> Option<Intersection>;
-    fn material(&self) -> &dyn Material<albedo=RgbColor>;
+    fn material(&self) -> &dyn Material<Albedo=RgbColor>;
 }

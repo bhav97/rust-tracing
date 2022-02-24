@@ -7,10 +7,14 @@ use crate::scene::intersect::Intersection;
 use rand::Rng;
 
 pub struct Matte {
-    pub albedo: RgbColor,
+    albedo: RgbColor,
 }
 
 impl Matte {
+    pub fn new(albedo: RgbColor) -> Self {
+        Matte { albedo }
+    }
+
     /// Lamberts cosine law
     /// RgbColor ∝ dot(I,N)
     /// I = I0*Kd*dot(I,N)/(|I|*|N|)
@@ -18,10 +22,8 @@ impl Matte {
     /// I is the incident vector
     /// As the angle increases, the light gets weaker
     fn lambertian_diffuse(&self, incident: &Vector, normal: &Vector, hit: &Point) -> Ray {
-        let x: f64 = rand::thread_rng().gen_range(0f64..1f64);
-        let y: f64 = rand::thread_rng().gen_range(0f64..1f64);
-        let z: f64 = rand::thread_rng().gen_range(0f64..1f64);
-        let dir = Vector::new(x, y, z) + *normal;
+        // let dir = self.random_in_unit_sphere() + *normal;
+        let dir = self.random_in_hemisphere(*incident) + *normal;
         if dir.len() < 0.001f64 {
             return Ray::new(*hit, *normal);
         }
@@ -30,12 +32,12 @@ impl Matte {
 }
 
 impl Material for Matte {
-    type albedo = RgbColor;
+    type Albedo = RgbColor;
     fn scatter(&self, hit_ray: &Ray, hit: &Intersection) -> Option<Ray> {
         Some(self.lambertian_diffuse(&hit_ray.direction, &hit.normal, &hit.point))
     }
 
-    fn albedo(&self) -> &Self::albedo {
+    fn albedo(&self) -> &Self::Albedo {
         &self.albedo
     }
 }

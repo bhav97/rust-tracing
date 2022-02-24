@@ -97,11 +97,11 @@ impl World {
     }
 
     // private method
-    fn hit(&self, ray: &Ray, range: (f64, f64)) -> Option<(Intersection, &dyn Material<albedo = RgbColor>)> {
+    fn hit(&self, ray: &Ray, range: (f64, f64)) -> Option<(Intersection, &dyn Material<Albedo = RgbColor>)> {
         let mut closest_intersect =
             Intersection::new(Point::default(), Vector::default(), range.1);
         let mut did_it_intersect = false;
-        let mut material_hit: Option<&dyn Material<albedo = RgbColor>> = None;
+        let mut material_hit: Option<&dyn Material<Albedo = RgbColor>> = None;
 
         // For every object in the world i.e. our content vector
         for object in &self.contents {
