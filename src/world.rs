@@ -8,6 +8,7 @@ use crate::scene::ray::Ray;
 use std::vec::Vec;
 use crate::scene::material::Material;
 use crate::scene::material::matte::Matte;
+use rand::Rng;
 
 /// A virtual world is represented here
 pub struct World {
@@ -39,12 +40,14 @@ impl World {
         let img_height = (img_width as f64 / camera.aspect_ratio) as u32;
         // TODO: render in multiple threads
         for y in (0..img_height).rev() {
+            eprint!("Generating line {:#3?}\r", img_height - y);
             for x in 0..img_width {
-                // Oversample
+                // Oversample and average with jitter > antialiasing
                 let mut pixel_color = RgbColor::default();
+                let mut rand = rand::thread_rng();
                 for _ in 0..World::SAMPLES_PER_PIXEL {
-                    let u = x as f64 / (img_width - 1) as f64;
-                    let v = y as f64 / (img_height - 1) as f64;
+                    let u = x as f64 / ((img_width - 1) as f64 + rand.gen_range(0f64..1f64));
+                    let v = y as f64 / ((img_height - 1) as f64 + rand.gen_range(0f64..1f64));
                     let ray = camera.get_ray(u, v);
                     pixel_color = pixel_color + self.raytrace(&ray, World::MAX_DEPTH);
                 }
